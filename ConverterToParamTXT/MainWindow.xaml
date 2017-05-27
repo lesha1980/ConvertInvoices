@@ -1,0 +1,72 @@
+﻿<Window x:Class="ConverterToParamTXT.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:ConverterToParamTXT"
+        Title="TXTКонвертер" Height="600" Width="600" Closing="Window_Closing_1"  DataContext="{Binding RelativeSource={RelativeSource Self}}" Icon="Resources/foldertxt.ico"
+        >
+    <Window.Resources>
+        <Image x:Key="ExitImg" Name="ImageExit" Source="Resources/exit.png"></Image>
+        <Image x:Key="ClearList" Name="ImageClearList" Source="Resources/GEditClear.png"></Image>
+        <Image x:Key="ClearText" Name="ImageClearText" Source="Resources/purge.png"></Image>
+        <Image x:Key="ClearLog" Name="ImageClearLog" Source="Resources/clean.png"></Image>
+        <Image x:Key="MinimizeToTray" Name="ImageMinToTray" Source="Resources/MinimizeBox.png" ></Image>
+        <Image x:Key="AddAutorun" Name="ImageAddAutorun" Source="Resources/run.png"></Image>
+        <Image x:Key="DelAutorun" Name="ImageDelAutorun" Source="Resources/autorun.png"></Image>
+    </Window.Resources>
+    <Window.CommandBindings>
+        <CommandBinding Command="ApplicationCommands.Close" Executed="Button_Click_Exit"></CommandBinding>
+        <CommandBinding Command="local:ConverterCommands.ClearList" Executed="ClearListExecuted"></CommandBinding>
+        <CommandBinding Command="local:ConverterCommands.ClearText" Executed="ClearTextExecuted"></CommandBinding>
+        <CommandBinding Command="local:ConverterCommands.ClearLog" Executed="ClearLogExecuted"></CommandBinding>
+        <CommandBinding Command="local:ConverterCommands.MinToTray" Executed="MinToTrayExecuted"></CommandBinding>
+        <CommandBinding Command="local:ConverterCommands.AddAutorun" Executed="AddAutorunExecuted"></CommandBinding>
+        <CommandBinding Command="local:ConverterCommands.DelAutorun" Executed="DelAutorunExecuted"></CommandBinding>
+    </Window.CommandBindings>
+    
+        <Grid SizeChanged="Grid_SizeChanged_1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+            
+            </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+            <ToolBar Height="36" Grid.Row="0">
+                <Button Name="exitBut" Content="{StaticResource ExitImg}" Command="ApplicationCommands.Close" ToolTip="Закрыть"/>
+                <Separator Margin="10,3"></Separator>
+                <Button Name="clearListBut" Content="{StaticResource ClearList}" Command="local:ConverterCommands.ClearList" ToolTip="Очистить список"/>
+                <Button Name="clearTextBut" Content="{StaticResource ClearText}" Command="local:ConverterCommands.ClearText" ToolTip="Очистить текстовый блок" />
+                <Button Name="clearLogBut" Content="{StaticResource ClearLog}" Command="local:ConverterCommands.ClearLog" ToolTip="Очистить файл журнала"></Button>
+                <Separator Margin="10,3"></Separator>
+                <Button Name="minTrayBut" Content="{StaticResource MinimizeToTray}" Command="local:ConverterCommands.MinToTray" ToolTip="Свернуть в трей" ></Button>
+                <Button Name="addAutorunBut" Content="{StaticResource AddAutorun}" Command="local:ConverterCommands.AddAutorun" ToolTip="Записать в автозапуск"></Button>
+                <Button Name="delAutorunBut" Content="{StaticResource DelAutorun}" Command="local:ConverterCommands.DelAutorun" ToolTip="Удалить из автозагрузки" ></Button>
+            <TextBox Height="24" Margin="10,3,5,5" TextWrapping="Wrap" TextAlignment="Center" Text="60" VerticalAlignment="Bottom" Width="57" TextInput="TextBox_TextInput_1"/>
+        </ToolBar>
+            <ListView Grid.Row="1" Name="listProcedFiles"  HorizontalAlignment="Left" Height="410" MouseDoubleClick="listProcedFiles_MouseDoubleClick" >
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="Время" Width="100" DisplayMemberBinding="{Binding DateProcessed}"/>
+                        <GridViewColumn Header="Обработанный файл" Width="380" DisplayMemberBinding="{Binding NameFile}"/>
+                        <GridViewColumn Header="Статус" Width="130">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox Name="CheckStatus" IsChecked="{Binding Status}" IsEnabled="False"></CheckBox>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                    </GridView>
+                </ListView.View>
+
+            </ListView>
+            
+            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Name="Scroller" Height="100">
+                <TextBlock Name="textFile" TextWrapping="Wrap">
+
+                </TextBlock>
+            </ScrollViewer>
+        </Grid>
+    
+</Window>
