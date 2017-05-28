@@ -308,18 +308,22 @@ namespace ConverterToParamTXT
 
       }*/
 
-       
+        ~MainWindow()
+        {
+            oMutex.Dispose();
+        }
         private void EndBuild(IAsyncResult ar)
         {
             try
             {
+                oMutex.WaitOne(); 
                 FileBuilderAsync builder = (FileBuilderAsync)ar.AsyncState;
                 // builder.EndInvoke(ar);
                 // this.lstParamTXT = this.fBuilder.Result();
                 this.lstParamTXT = builder.EndInvoke(ar);
                 foreach (ParamTXTFile fparam in this.lstParamTXT)
                 {
-                    oMutex.WaitOne(); 
+                    
                    if(!File.Exists(fparam.FileName))
                    {
                     StreamWriter sw = null;
@@ -409,15 +413,20 @@ namespace ConverterToParamTXT
                         }
 
                     }
-                    if (this.pathFile.Count >= 50)
+                    if (this.pathFile.Count >= 10)
                     {
                         this.Dispatcher.Invoke(() => this.pathFile.RemoveAt(0));
 
                     }
-                    this.Dispatcher.Invoke(() => this.pathFile.Add(item));
+                    this.Dispatcher.Invoke(delegate { 
+                        this.pathFile.Add(item);
+                        this.listProcedFiles.ItemsSource = this.pathFile;
+                    });
+                    
                 }
-                  oMutex.ReleaseMutex();
+                 
                 }
+                oMutex.ReleaseMutex();
             }
             catch(NullReferenceException e)
             {

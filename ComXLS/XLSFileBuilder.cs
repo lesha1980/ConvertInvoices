@@ -29,7 +29,7 @@ namespace ComXLS
         private List<SearchingColumnRows> lstColR;
         private List<InvoiceAbstract> lstInvoices;
         private ProcessedFile oFile;
-        private static Mutex oMutex = new Mutex();
+       // private static Mutex oMutex = new Mutex();
         private LogInf oLog;
        // private List<ParamTXTFile> lstParamTXTFile;
         

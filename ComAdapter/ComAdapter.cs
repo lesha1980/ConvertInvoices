@@ -19,7 +19,7 @@ namespace ComAdapter
        // private XLSFileBuilder oFileBuilder;
        // private TXTFileBuilder oTXTFileBuilder;
         private FileBuilder oFileBuilder;
-        private static Mutex oMutex = new Mutex();
+       // private static Mutex oMutex = new Mutex();
         private String getExtension(string sPath)
         {
             String sExt = string.Empty;
@@ -83,14 +83,29 @@ namespace ComAdapter
 
         public override List<ParamTXTFile> Start()
         {
-            oMutex.WaitOne();
-            List<ParamTXTFile> ptxtlst = this.oFileBuilder.Start();
-            oMutex.ReleaseMutex();
-            return ptxtlst;
+            Mutex oMutex = new Mutex();
+            try
+            {
+                oMutex.WaitOne();
+                List<ParamTXTFile> ptxtlst = this.oFileBuilder.Start();
+                oMutex.ReleaseMutex();
+                return ptxtlst;
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message, e.HResult.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return null;
+            }
+            finally {
+                oMutex.Dispose();
+            }
            // this.lstParamTXTFile = this.oFileBuilder.Result();
             //base.Start();
         }
-
+        ~ComAdapter()
+        {
+            //oMutex.Dispose();
+        }
         public override void Finish()
         {
         

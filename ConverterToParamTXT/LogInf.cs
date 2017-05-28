@@ -14,7 +14,7 @@ namespace ConverterToParamTXT
     {
         private String sLog;
         private String sLogLogInf;
-        private static Mutex _mutex = new Mutex();
+       // private static Mutex _mutex = new Mutex();
 
         public LogInf()
         {
@@ -69,54 +69,63 @@ namespace ConverterToParamTXT
 
             }
         }*/
+        ~LogInf()
+        {
+            //_mutex.Dispose();
+        }
         public void logDataError(String data, String trace)
         {
-
-      // try {
-            _mutex.WaitOne();
-            if (File.Exists(this.sLog))
+            Mutex _mutex = new Mutex();
+            try
             {
-                FileInfo inf = new FileInfo(this.sLog);
-                long size = inf.Length;
-                if (size >= 1048576)
-                    inf.Delete();
-            }
-                using(StreamWriter sw = new StreamWriter(this.sLog, true))
+                _mutex.WaitOne();
+                if (File.Exists(this.sLog))
+                {
+                    FileInfo inf = new FileInfo(this.sLog);
+                    long size = inf.Length;
+                    if (size >= 1048576)
+                        inf.Delete();
+                }
+                using (StreamWriter sw = new StreamWriter(this.sLog, true))
                 {
                     sw.WriteLine(DateTime.Now.ToString());
                     sw.WriteLine(data);
                     sw.WriteLine(trace);
                 }
-            _mutex.ReleaseMutex();
-         /*   }
-            catch(DirectoryNotFoundException e)
+
+            }
+            catch (DirectoryNotFoundException e)
             {
                 //MessageBox.Show(e.Message, e.HResult.ToString(), MessageBoxButton.OK, MessageBoxImage.Error);
-                this.logLogInf(e.Message);
-                this.logLogInf(e.StackTrace);
+                // this.logLogInf(e.Message);
+                // this.logLogInf(e.StackTrace);
 
             }
             catch (FileLoadException e)
             {
-               // MessageBox.Show(e.Message, e.HResult.ToString(), MessageBoxButton.OK, MessageBoxImage.Error);
-                this.logLogInf(e.Message);
-                this.logLogInf(e.StackTrace);
+                // MessageBox.Show(e.Message, e.HResult.ToString(), MessageBoxButton.OK, MessageBoxImage.Error);
+                // this.logLogInf(e.Message);
+                // this.logLogInf(e.StackTrace);
 
             }
             catch (PathTooLongException e)
             {
                 //MessageBox.Show(e.Message, e.HResult.ToString(), MessageBoxButton.OK, MessageBoxImage.Error);
-                this.logLogInf(e.Message);
-                this.logLogInf(e.StackTrace);
+                // this.logLogInf(e.Message);
+                // this.logLogInf(e.StackTrace);
 
             }
-            catch(IOException e)
+            catch (IOException e)
             {
                 //MessageBox.Show(e.Message, e.HResult.ToString(), MessageBoxButton.OK, MessageBoxImage.Error);
-                this.logLogInf(e.Message);
-                this.logLogInf(e.StackTrace);
+                //  this.logLogInf(e.Message);
+                // this.logLogInf(e.StackTrace);
 
-            }*/
+            }
+            finally {
+                _mutex.ReleaseMutex();
+                _mutex.Dispose();
+            }
         }
     }
 }
