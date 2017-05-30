@@ -638,11 +638,13 @@ namespace ConverterToParamTXT
 
         protected override void OnClosed(EventArgs e)
         {
+            
             this.oMonitor.Dispose();
+        
             base.OnClosed(e);
             this._notif.Visible = false;
             Application.Current.Shutdown(0);
-            Process.GetCurrentProcess().Kill();
+           // Process.GetCurrentProcess().Kill();
             
         }
 

@@ -102,7 +102,8 @@ namespace ConverterToParamTXT
         }
         ~MonitorDataAdapterProcess()
         {
-            this.Dispose();
+            //this.oThread.IsBackground = true;
+            //this.Dispose();
         }
       /*  public void StartThreadAnother()
         {
@@ -115,6 +116,8 @@ namespace ConverterToParamTXT
 
         public void Dispose()
         {
+          if(this.oThread != null)
+            this.oThread.IsBackground = true;
             if (this.oServerPipeStream != null)
             {
                 if (this.oServerPipeStream.IsConnected)
@@ -122,11 +125,11 @@ namespace ConverterToParamTXT
               
                 this.oServerPipeStream.Close();
                 this.oServerPipeStream = null;
-             if(this.oThread.IsAlive)
+            /* if(this.oThread.IsAlive)
              {
                 this.oThread.Abort();
                 this.oThread = null;
-             }
+             }*/
             }
         }
 
