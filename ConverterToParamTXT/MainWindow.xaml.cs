@@ -55,7 +55,7 @@ namespace ConverterToParamTXT
         private String RunKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
         private bool _loaded = false;
         private DirectoryInfo _dirinf;
-        private static Mutex oMutex = new Mutex();
+        private object locker = new object();
 
         public MainWindow()
         {
@@ -310,123 +310,126 @@ namespace ConverterToParamTXT
 
         ~MainWindow()
         {
-            oMutex.Dispose();
+          // oMutex.Dispose();
         }
         private void EndBuild(IAsyncResult ar)
         {
+           // Mutex oMutex = new Mutex();
             try
             {
-                oMutex.WaitOne(); 
-                FileBuilderAsync builder = (FileBuilderAsync)ar.AsyncState;
-                // builder.EndInvoke(ar);
-                // this.lstParamTXT = this.fBuilder.Result();
-                this.lstParamTXT = builder.EndInvoke(ar);
-                foreach (ParamTXTFile fparam in this.lstParamTXT)
-                {
-                    
-                   if(!File.Exists(fparam.FileName))
-                   {
-                    StreamWriter sw = null;
-                    FileProcessedItem item = new FileProcessedItem();
-                    try
+                //  oMutex.WaitOne(); 
+                lock (locker) {
+                    FileBuilderAsync builder = (FileBuilderAsync)ar.AsyncState;
+                    // builder.EndInvoke(ar);
+                    // this.lstParamTXT = this.fBuilder.Result();
+                    this.lstParamTXT = builder.EndInvoke(ar);
+                    foreach (ParamTXTFile fparam in this.lstParamTXT)
                     {
-                        if (fparam == null)
-                            throw new ParamTXTException("Ссылка не указывает на ParamTXTFile");
-                        String m = String.Empty;
-                        int count = fparam.AmountProducts.Count - 1;
-                        FileInfo finf = new FileInfo(fparam.FileName);
-                        if (finf.Extension.Equals(".txt"))
+
+                        if (!File.Exists(fparam.FileName))
                         {
-                            sw = new StreamWriter(fparam.FileName, true);
-                            sw.WriteLine("@@@@");
-                            sw.Close();
-                            sw.Dispose();
+                            StreamWriter sw = null;
+                            FileProcessedItem item = new FileProcessedItem();
+                            try
+                            {
+                                if (fparam == null)
+                                    throw new ParamTXTException("Ссылка не указывает на ParamTXTFile");
+                                String m = String.Empty;
+                                int count = fparam.AmountProducts.Count - 1;
+                                FileInfo finf = new FileInfo(fparam.FileName);
+                                if (finf.Extension.Equals(".txt"))
+                                {
+                                    sw = new StreamWriter(fparam.FileName, true);
+                                    sw.WriteLine("@@@@");
+                                    sw.Close();
+                                    sw.Dispose();
+                                }
+
+
+                                for (int i = 0; i <= count; i++)
+                                {
+                                    String s = this.CreatStrWrite(fparam);
+                                    sw = new StreamWriter(fparam.FileName, true);
+                                    sw.WriteLine(s);
+                                    sw.Close();
+                                    sw.Dispose();
+
+                                }
+
+                                item.DateProcessed = DateTime.Now.ToString();
+                                item.NameFile = fparam.FileName;
+                                item.Status = true;
+
+
+                            }
+                            catch (ParamTXTException e)
+                            {
+                                this.oLog.logDataError(e.Message, e.StackTrace);
+                                item.DateProcessed = DateTime.Now.ToString();
+                                item.NameFile = fparam.FileSource;
+                                item.Status = false;
+
+                            }
+                            catch (DirectoryNotFoundException e)
+                            {
+                                MessageBox.Show(e.Message, e.HResult.ToString(), MessageBoxButton.OK, MessageBoxImage.Error);
+                                this.oLog.logDataError(e.Message, e.StackTrace);
+                                item.DateProcessed = DateTime.Now.ToString();
+                                item.NameFile = fparam.FileSource;
+                                item.Status = false;
+
+                            }
+                            catch (FileLoadException e)
+                            {
+                                MessageBox.Show(e.Message, e.HResult.ToString(), MessageBoxButton.OK, MessageBoxImage.Error);
+                                this.oLog.logDataError(e.Message, e.StackTrace);
+                                item.DateProcessed = DateTime.Now.ToString();
+                                item.NameFile = fparam.FileSource;
+                                item.Status = false;
+
+                            }
+                            catch (PathTooLongException e)
+                            {
+                                MessageBox.Show(e.Message, e.HResult.ToString(), MessageBoxButton.OK, MessageBoxImage.Error);
+                                this.oLog.logDataError(e.Message, e.StackTrace);
+                                item.DateProcessed = DateTime.Now.ToString();
+                                item.NameFile = fparam.FileSource;
+                                item.Status = false;
+
+                            }
+                            catch (IOException e)
+                            {
+                                MessageBox.Show(e.Message, e.HResult.ToString(), MessageBoxButton.OK, MessageBoxImage.Error);
+                                this.oLog.logDataError(e.Message, e.StackTrace);
+                                item.DateProcessed = DateTime.Now.ToString();
+                                item.NameFile = fparam.FileSource;
+                                item.Status = false;
+
+                            }
+                            finally
+                            {
+                                if (sw != null)
+                                {
+                                    sw.Close();
+                                    sw.Dispose();
+                                }
+
+                            }
+                            if (this.pathFile.Count >= 10)
+                            {
+                                this.Dispatcher.Invoke(() => this.pathFile.RemoveAt(0));
+
+                            }
+                            this.Dispatcher.Invoke(delegate {
+                                this.pathFile.Add(item);
+                                this.listProcedFiles.ItemsSource = this.pathFile;
+                            });
+
                         }
 
-
-                        for (int i = 0; i <= count; i++)
-                        {
-                            String s = this.CreatStrWrite(fparam);
-                            sw = new StreamWriter(fparam.FileName, true);
-                            sw.WriteLine(s);
-                            sw.Close();
-                            sw.Dispose();
-
-                        }
-
-                        item.DateProcessed = DateTime.Now.ToString();
-                        item.NameFile = fparam.FileName;
-                        item.Status = true;
-
-
                     }
-                    catch (ParamTXTException e)
-                    {
-                        this.oLog.logDataError(e.Message, e.StackTrace);
-                        item.DateProcessed = DateTime.Now.ToString();
-                        item.NameFile = fparam.FileSource;
-                        item.Status = false;
-
-                    }
-                    catch (DirectoryNotFoundException e)
-                    {
-                        MessageBox.Show(e.Message, e.HResult.ToString(), MessageBoxButton.OK, MessageBoxImage.Error);
-                        this.oLog.logDataError(e.Message, e.StackTrace);
-                        item.DateProcessed = DateTime.Now.ToString();
-                        item.NameFile = fparam.FileSource;
-                        item.Status = false;
-
-                    }
-                    catch (FileLoadException e)
-                    {
-                        MessageBox.Show(e.Message, e.HResult.ToString(), MessageBoxButton.OK, MessageBoxImage.Error);
-                        this.oLog.logDataError(e.Message, e.StackTrace);
-                        item.DateProcessed = DateTime.Now.ToString();
-                        item.NameFile = fparam.FileSource;
-                        item.Status = false;
-
-                    }
-                    catch (PathTooLongException e)
-                    {
-                        MessageBox.Show(e.Message, e.HResult.ToString(), MessageBoxButton.OK, MessageBoxImage.Error);
-                        this.oLog.logDataError(e.Message, e.StackTrace);
-                        item.DateProcessed = DateTime.Now.ToString();
-                        item.NameFile = fparam.FileSource;
-                        item.Status = false;
-
-                    }
-                    catch (IOException e)
-                    {
-                        MessageBox.Show(e.Message, e.HResult.ToString(), MessageBoxButton.OK, MessageBoxImage.Error);
-                        this.oLog.logDataError(e.Message, e.StackTrace);
-                        item.DateProcessed = DateTime.Now.ToString();
-                        item.NameFile = fparam.FileSource;
-                        item.Status = false;
-
-                    }
-                    finally
-                    {
-                        if (sw != null)
-                        {
-                            sw.Close();
-                            sw.Dispose();
-                        }
-
-                    }
-                    if (this.pathFile.Count >= 10)
-                    {
-                        this.Dispatcher.Invoke(() => this.pathFile.RemoveAt(0));
-
-                    }
-                    this.Dispatcher.Invoke(delegate { 
-                        this.pathFile.Add(item);
-                        this.listProcedFiles.ItemsSource = this.pathFile;
-                    });
-                    
+                    // oMutex.ReleaseMutex();
                 }
-                 
-                }
-                oMutex.ReleaseMutex();
             }
             catch(NullReferenceException e)
             {
